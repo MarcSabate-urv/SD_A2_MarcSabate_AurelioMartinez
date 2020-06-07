@@ -7,11 +7,11 @@ import time as t
 get_last_modified = lambda obj: int(obj['LastModified'].timestamp())
 
 # inicializacion de variables
-N_SLAVES = 20
+N_SLAVES = 5
 BUCKET_NAME = 'depositoaurelio'
 namew = 'write_'
 namep = 'p_write_'
-namej = 'result.json'
+namej = 'Result.json'
 x = 0.100
 s = ''
 data = []
@@ -90,19 +90,26 @@ if __name__ == '__main__':
 
     # result.json vacio
     ibm_cos.put_object(Bucket=BUCKET_NAME, Key=namej, Body=data)
-
+    
     # llamadas a las funciones
     pw.map(slave, range(N_SLAVES))
     pw.call_async(master, x)
 
     # coger resultados y comparar
     write_permission_list = pw.get_result()
+
     result = ibm_cos.get_object(Bucket=BUCKET_NAME, Key=namej)['Body'].read()
     result = json.loads(result)
     if write_permission_list == result:
-        print("Les llistes són iguals.")
+        print("Las listas son iguales.")
     else:
-        print("Les llistes són diferents.")
+        print("Las listas son diferentes.")
 
-    # borrar result.json
-    ibm_cos.delete_object(Bucket=BUCKET_NAME, Key=namej)
+
+    #bucle para borrar los archivos intermedios (pywren.jobs)
+    print("Borrando los archivos intermedios... ")
+    lista = ibm_cos.list_objects(Bucket=BUCKET_NAME, Prefix='pywren.jobs')
+    aux_list = [obj['Key'] for obj in lista["Contents"]]
+    for a in aux_list:
+        ibm_cos.delete_object(Bucket=BUCKET_NAME, Key=a)
+
