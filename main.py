@@ -7,7 +7,7 @@ import time as t
 get_last_modified = lambda obj: int(obj['LastModified'].timestamp())
 
 # inicializacion de variables
-N_SLAVES = 100
+N_SLAVES = 20
 BUCKET_NAME = 'depositoaurelio'
 namew = 'write_'
 namep = 'p_write_'
