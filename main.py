@@ -7,7 +7,7 @@ import time as t
 get_last_modified = lambda obj: int(obj['LastModified'].timestamp())
 
 # inicializacion de variables
-N_SLAVES = 20
+N_SLAVES = 5
 
 BUCKET_NAME = 'depositoaurelio'
 namew = 'write_'
@@ -26,9 +26,12 @@ def master(x, ibm_cos):
         # Lista de los p_write por orden
         aux_list = ibm_cos.list_objects(Bucket=BUCKET_NAME, Prefix=namep)
         try:
+            #mientras queden
             aux_list = [obj['Key'] for obj in sorted(aux_list["Contents"], key=get_last_modified, reverse=True)]
         except:
+            #cuando no quedan
             return write_permission_list
+
         # Coger el mas antiguo y su id
         aux2 = aux_list[0]
         id = aux2[8:]
@@ -53,7 +56,7 @@ def master(x, ibm_cos):
             else:
                 t.sleep(x)
 
-        # borrar write{id} y actualizar condicion
+        # borrar write{id}
         ibm_cos.delete_object(Bucket=BUCKET_NAME, Key=namew + id)
 
 
